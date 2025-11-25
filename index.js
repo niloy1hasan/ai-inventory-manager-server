@@ -80,6 +80,22 @@ async function run() {
     });
 
 
+    app.put("/models/:id", async (req, res) => {
+      const { id } = req.params;
+      const updatedModel = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = { $set: updatedModel };
+      const result = await modelsCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+    app.delete("/models/:id", async (req, res) => {
+        const { id } = req.params;
+        const result = await modelsCollection.deleteOne({ _id: new ObjectId(id) });
+        res.send(result);
+    });
+
+
     console.log("MongoDB connected successfully");
   } finally {
     console.log("MongoDB setup done");
