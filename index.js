@@ -18,14 +18,33 @@ const client = new MongoClient(uri, {
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("AI Model Inventory Manager Server Running");
-});
-
 
 async function run() {
+  console.log("MongoDB connecting...");
   try {
     await client.connect();
+    const db = client.db("ai_model_db");
+    const modelsCollection = db.collection("models");
+
+    app.get("/", (req, res) => {
+      res.send("AI Model Inventory Manager Server Running");
+    });
+
+    app.get("/models", async (req, res) => {
+      const models = await modelsCollection
+        .find()
+        .sort({ createdAt: -1 })
+        .toArray();
+      res.send(models);
+    });
+
+    app.get("/models/:id", async (req, res) => {
+      const id = req.params.id;
+      const model = await modelsCollection.findOne({ _id: new ObjectId(id) });
+      res.send(model);
+    });
+
+
     console.log("MongoDB connected successfully");
   } finally {
     console.log("MongoDB setup done");
