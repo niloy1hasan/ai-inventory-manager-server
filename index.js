@@ -26,6 +26,7 @@ async function run() {
     const db = client.db("ai_model_db");
     const modelsCollection = db.collection("models");
     const userCollection = db.collection("users");
+    const purchasesCollection = db.collection("purchases");
 
     app.get("/", (req, res) => {
       res.send("AI Model Inventory Manager Server Running");
@@ -130,8 +131,35 @@ async function run() {
     res.send(result);
   });
 
-  
 
+    app.post("/purchase/:id", async (req, res) => {
+  const { id } = req.params;
+  const { buyerEmail } = req.body;
+  const model = await modelsCollection.findOne({ _id: new ObjectId(id) });
+  if (!model) return res.status(404).send({ message: "Model not found" });
+
+  const purchaseRecord = {
+    modelId: id,
+    buyerEmail,
+    modelName: model.name,
+    framework: model.framework,
+    useCase: model.useCase,
+    createdBy: model.createdBy,
+    image: model.image,
+    purchasedAt: new Date(),
+  };
+
+  await purchasesCollection.insertOne(purchaseRecord);
+  await modelsCollection.updateOne({ _id: new ObjectId(id) }, { $inc: { purchased: 1 } });
+
+  res.send({ message: "Purchase successful", modelId: id });
+});
+
+app.get("/my-purchase/:email", async (req, res) => {
+  const { email } = req.params;
+  const purchases = await purchasesCollection.find({ buyerEmail: email }).toArray();
+  res.send(purchases);
+});
 
     console.log("MongoDB connected successfully");
   } finally {
