@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const { MongoClient, ObjectId, ServerApiVersion } = require("mongodb");
-
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -22,7 +21,7 @@ app.use(express.json());
 async function run() {
   console.log("MongoDB connecting...");
   try {
-    await client.connect();
+    // await client.connect();
     const db = client.db("ai_model_db");
     const modelsCollection = db.collection("models");
     const userCollection = db.collection("users");
@@ -167,9 +166,9 @@ app.get("/my-purchase/:email", async (req, res) => {
   }
 }
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`Server running on port ${port}`);
+// });
 
 
 run().catch(console.dir);
