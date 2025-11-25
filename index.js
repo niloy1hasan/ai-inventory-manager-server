@@ -25,6 +25,7 @@ async function run() {
     await client.connect();
     const db = client.db("ai_model_db");
     const modelsCollection = db.collection("models");
+    const userCollection = db.collection("users");
 
     app.get("/", (req, res) => {
       res.send("AI Model Inventory Manager Server Running");
@@ -53,6 +54,30 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/users", async (req, res) => {
+      const users = await userCollection.find().toArray();
+      res.send(users);
+    });
+
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const existingUser = await userCollection.findOne({ email: user.email });
+      if (existingUser) {
+        return res.send({ message: "User already exists" });
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = await userCollection.findOne({ email });
+      if (user) {
+        res.json(user);
+      } else {
+        res.json({});
+      }
+    });
 
 
     console.log("MongoDB connected successfully");
