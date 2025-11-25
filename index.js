@@ -121,6 +121,16 @@ async function run() {
     });
 
 
+    app.post("/search-models", async (req, res) => {
+    const search = req.body.search || "";
+    const result = await modelsCollection
+      .find({ name: { $regex: search, $options: "i" } })
+      .sort({ createdAt: -1 })
+      .toArray();
+    res.send(result);
+  });
+
+  
 
 
     console.log("MongoDB connected successfully");
