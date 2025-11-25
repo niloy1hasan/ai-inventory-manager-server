@@ -96,6 +96,33 @@ async function run() {
     });
 
 
+    app.get("/my-models/:email", async (req, res) => {
+      const email = req.params.email;
+      const models = await modelsCollection
+        .find({ createdBy: email })
+        .toArray();
+      res.send(models);
+    });
+
+
+    app.patch("/models/view/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+
+        const result = await modelsCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $inc: { views: 1 } }
+        );
+
+        res.send(result);
+      } catch (error) {
+        res.send({ error: "Failed to increase view count" });
+      }
+    });
+
+
+
+
     console.log("MongoDB connected successfully");
   } finally {
     console.log("MongoDB setup done");
