@@ -19,8 +19,8 @@ app.use(express.json());
 
 
 async function run() {
-  
   console.log("MongoDB connecting...");
+  
   try {
     // await client.connect();
     const db = client.db("ai_model_db");
@@ -99,11 +99,15 @@ async function run() {
 
     app.get("/my-models/:email", async (req, res) => {
       const email = req.params.email;
+
       const models = await modelsCollection
         .find({ createdBy: email })
+        .sort({ createdAt: -1 })
         .toArray();
+
       res.send(models);
-    });
+  });
+
 
 
     app.patch("/models/view/:id", async (req, res) => {
@@ -133,33 +137,42 @@ async function run() {
 
 
     app.post("/purchase/:id", async (req, res) => {
-  const { id } = req.params;
-  const { buyerEmail } = req.body;
-  const model = await modelsCollection.findOne({ _id: new ObjectId(id) });
-  if (!model) return res.status(404).send({ message: "Model not found" });
+      const { id } = req.params;
+      const { buyerEmail } = req.body;
+      const model = await modelsCollection.findOne({ _id: new ObjectId(id) });
+      if (!model) return res.send({ message: "Model not found" });
 
-  const purchaseRecord = {
-    modelId: id,
-    buyerEmail,
-    modelName: model.name,
-    framework: model.framework,
-    useCase: model.useCase,
-    createdBy: model.createdBy,
-    image: model.image,
-    purchasedAt: new Date(),
-  };
+      const purchaseRecord = {
+        modelId: id,
+        buyerEmail,
+        modelName: model.name,
+        description: model.description,
+        framework: model.framework,
+        dataset: model.dataset,
+        useCase: model.useCase,
+        createdBy: model.createdBy,
+        image: model.image,
+        purchasedAt: new Date(),
+      };
 
-  await purchasesCollection.insertOne(purchaseRecord);
-  await modelsCollection.updateOne({ _id: new ObjectId(id) }, { $inc: { purchased: 1 } });
+      await purchasesCollection.insertOne(purchaseRecord);
+      await modelsCollection.updateOne({ _id: new ObjectId(id) }, { $inc: { purchased: 1 } });
 
-  res.send({ message: "Purchase successful", modelId: id });
-});
+      res.send({ message: "Purchase successful", modelId: id });
+    });
 
-app.get("/my-purchase/:email", async (req, res) => {
-  const { email } = req.params;
-  const purchases = await purchasesCollection.find({ buyerEmail: email }).toArray();
-  res.send(purchases);
-});
+
+    app.get("/my-purchase/:email", async (req, res) => {
+      const { email } = req.params;
+
+      const purchases = await purchasesCollection
+        .find({ buyerEmail: email })
+        .sort({ purchasedAt: -1 })
+        .toArray();
+
+      res.send(purchases);
+    });
+
     console.log("MongoDB connected successfully");
     
     app.listen(port, () => console.log(`Server running on port ${port}`));
