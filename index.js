@@ -44,6 +44,16 @@ async function run() {
       res.send(model);
     });
 
+    app.post("/models", async (req, res) => {
+      const model = req.body;
+      model.createdAt = new Date();
+      model.purchased = model.purchased || 0;
+      model.view = model.view || 0;
+      const result = await modelsCollection.insertOne(model);
+      res.send(result);
+    });
+
+
 
     console.log("MongoDB connected successfully");
   } finally {
